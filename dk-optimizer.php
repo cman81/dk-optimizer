@@ -14,7 +14,7 @@ define('RB', 'RB');
 define('WR', 'WR');
 define('TE', 'TE');
 define('FLEX', 'Flex');
-define('DEF', 'DEF');
+define('DEF', 'DST');
 
 // initialize parameters
 $limits = array();
@@ -50,14 +50,18 @@ if (count($argv) > 1) {
     DEF => 1,
     'salary' => 50000,
   );
-  $iterations = 100;
+  $iterations = 30000;
 }
 
 // run the engine
+$time_start = microtime_float();
 for ($i = 0; $i < $iterations; $i++) {
   // initialize parameters
   $closed_positions = array();
-  $current_team = array();
+  $current_team = array(
+    'total_points' => 0,
+    'total_salary' => 0,
+  );
   $current_limits = $limits;
 
   // shuffle player 'cards'
@@ -107,18 +111,27 @@ for ($i = 0; $i < $iterations; $i++) {
     $current_team['total_points'] += $value[POINTS];
     $current_team['total_salary'] += $value[SALARY];
   }
-  
+
   // is this team the best we have assembled?
   if ($current_team['total_points'] > $best_team['total_points']) {
     $best_team = $current_team;
   }
   
-  // show we have completed one iteration
-  echo '.';
+  // show we have completed 20 iterations
+  if ($i % 20 == 0) {
+    echo '.';
+  }
 }
+$time_end = microtime_float();
+$time = $time_end - $time_start;
 
 echo "\n";
-var_dump($best_team);
+foreach ($best_team['players'] as $value) {
+  echo $value[NAME] . ' (' . $value[POSITION] . '): cost = $' . $value[SALARY] . ', points = ' . $value[POINTS] . "\n";
+}
+echo "Total Salary: $" . $best_team['total_salary'] . "\n";
+echo "Total Points: " . $best_team['total_points'] . "\n";
+echo "Execution time: " . $time . " seconds\n";
 
 /**
  * http://rogerstringer.com/2013/11/15/generate-uuids-php
@@ -131,4 +144,9 @@ function generate_uuid() {
         mt_rand( 0, 0x3fff ) | 0x8000,
         mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff )
     );
+}
+
+function microtime_float() {
+    list($usec, $sec) = explode(" ", microtime());
+    return ((float)$usec + (float)$sec);
 }
