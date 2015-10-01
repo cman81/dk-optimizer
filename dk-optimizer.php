@@ -19,6 +19,16 @@ define('DEF', 'DST');
 // initialize parameters
 $limits = array();
 $best_team = array('total_points' => 0);
+$limits = array(
+  QB => 1,
+  RB => 2,
+  WR => 3,
+  TE => 1,
+  FLEX => 1,
+  DEF => 1,
+  'salary' => 50000,
+);
+$iterations = 30000;
 
 // load player data
 if (file('data.csv') !== FALSE) {
@@ -39,18 +49,7 @@ $players = array_slice($players, 1); // remove header row
 // accept command-line arguments
 if (count($argv) > 1) {
   $args = array_slice($argv, 1);
-  list($limits[QB], $limits[RB], $limits[WR], $limits[TE], $limits[FLEX], $limits[DEF], $limits['salary'], $iterations) = $args;
-} else {
-  $limits = array(
-    QB => 1,
-    RB => 2,
-    WR => 3,
-    TE => 1,
-    FLEX => 1,
-    DEF => 1,
-    'salary' => 50000,
-  );
-  $iterations = 30000;
+  list($iterations) = $args;
 }
 
 // run the engine
@@ -115,23 +114,39 @@ for ($i = 0; $i < $iterations; $i++) {
   // is this team the best we have assembled?
   if ($current_team['total_points'] > $best_team['total_points']) {
     $best_team = $current_team;
-  }
-  
-  // show we have completed 20 iterations
-  if ($i % 20 == 0) {
-    echo '.';
+    echo '+';
   }
 }
 $time_end = microtime_float();
 $time = $time_end - $time_start;
-
 echo "\n";
+
+usort(
+  $best_team['players'],
+  function($a, $b) {
+    if ($a[POINTS] == $b[POINTS]) {
+      return ($a[SALARY] > $b[SALARY]) ? -1 : 1;
+    }
+    return ($a[POINTS] > $b[POINTS]) ? -1 : 1;
+  }
+);
+
+$output = array();
 foreach ($best_team['players'] as $value) {
-  echo $value[NAME] . ' (' . $value[POSITION] . '): cost = $' . $value[SALARY] . ', points = ' . $value[POINTS] . "\n";
+  echo str_pad($value[NAME] . ' ', 25) . str_pad('(' . $value[POSITION] . ')', 5) . ' cost = ' . str_pad('$' . $value[SALARY], 6) . ' points = ' . str_pad($value[POINTS], 4) . "\n";
+  $output[] = $value[NAME];
 }
+
 echo "Total Salary: $" . $best_team['total_salary'] . "\n";
+$output[] = $best_team['total_salary'];
+
 echo "Total Points: " . $best_team['total_points'] . "\n";
+$output[] = $best_team['total_points'];
+
 echo "Execution time: " . $time . " seconds\n";
+$file = fopen('output.csv', 'a');
+fwrite($file, implode(',', $output) . "\n");
+fclose($file);
 
 /**
  * http://rogerstringer.com/2013/11/15/generate-uuids-php
