@@ -18,14 +18,19 @@ $limits = array();
 $best_team = array('total_points' => 0);
 
 // load player data
-$players = array(
-  array('Player Name', 'Position', 'Salary', 'Projected Points'),
-  array('Julio Jones', 'WR', '9300', '12.9'),
-  array('Andre Johnson', 'WR', '9300', '12.9'),
-  array('Blargh', 'WR', '9300', '12.9'),
-  array('Next', 'WR', '9300', '12.9'),
-  array('Hello', 'WR', '9300', '12.9'),
-);
+if (file('data.csv') !== FALSE) {
+  $players = array_map('str_getcsv', file('data.csv'));
+} else {
+  // sample data
+  $players = array(
+    array('Player Name', 'Position', 'Salary', 'Projected Points'),
+    array('Julio Jones', 'WR', '9300', '12.9'),
+    array('Andre Johnson', 'WR', '9300', '12.9'),
+    array('Blargh', 'WR', '9300', '12.9'),
+    array('Next', 'WR', '9300', '12.9'),
+    array('Hello', 'WR', '9300', '12.9'),
+  );
+}
 $players = array_slice($players, 1); // remove header row
 
 // accept command-line arguments
@@ -113,3 +118,16 @@ for ($i = 0; $i < $iterations; $i++) {
 
 echo "\n";
 var_dump($best_team);
+
+/**
+ * http://rogerstringer.com/2013/11/15/generate-uuids-php
+ */
+function generate_uuid() {
+    return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+        mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ),
+        mt_rand( 0, 0xffff ),
+        mt_rand( 0, 0x0fff ) | 0x4000,
+        mt_rand( 0, 0x3fff ) | 0x8000,
+        mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff )
+    );
+}
