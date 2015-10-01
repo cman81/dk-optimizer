@@ -28,7 +28,7 @@ $limits = array(
   DEF => 1,
   'salary' => 50000,
 );
-$iterations = 30000;
+$threshold = 200;
 
 // load player data
 if (file('data.csv') !== FALSE) {
@@ -49,12 +49,13 @@ $players = array_slice($players, 1); // remove header row
 // accept command-line arguments
 if (count($argv) > 1) {
   $args = array_slice($argv, 1);
-  list($iterations) = $args;
+  list($threshold) = $args;
 }
 
 // run the engine
 $time_start = microtime_float();
-for ($i = 0; $i < $iterations; $i++) {
+$i = 0;
+while ($i < $threshold) {
   // initialize parameters
   $closed_positions = array();
   $current_team = array(
@@ -114,7 +115,10 @@ for ($i = 0; $i < $iterations; $i++) {
   // is this team the best we have assembled?
   if ($current_team['total_points'] > $best_team['total_points']) {
     $best_team = $current_team;
+    $i = 0;
     echo '+';
+  } else {
+    $i++;
   }
 }
 $time_end = microtime_float();
