@@ -1,4 +1,7 @@
 <?php
+/**
+ * A brute force approach to building the best fantasy team for sites like DraftKings
+ **/
 
 // define constants
 define('NAME', 0);
@@ -49,8 +52,6 @@ if (count($argv > 1)) {
   );
   $iterations = 100;
 }
-
-// initialize teams
 
 // run the engine
 for ($i = 0; $i < $iterations; $i++) {
@@ -121,7 +122,7 @@ var_dump($best_team);
 
 /**
  * http://rogerstringer.com/2013/11/15/generate-uuids-php
- */
+ **/
 function generate_uuid() {
     return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
         mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ),
