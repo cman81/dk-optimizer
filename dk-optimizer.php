@@ -15,7 +15,7 @@ define('DEF', 'DEF');
 
 // initialize parameters
 $limits = array();
-$best_team = array('points' => 0);
+$best_team = array('total_points' => 0);
 
 // load player data
 $players = array(
@@ -26,6 +26,7 @@ $players = array(
   array('Next', 'WR', '9300', '12.9'),
   array('Hello', 'WR', '9300', '12.9'),
 );
+$players = array_slice($players, 1); // remove header row
 
 // accept command-line arguments
 if (count($argv > 1)) {
@@ -67,12 +68,20 @@ for ($i = 0; $i < $iterations; $i++) {
   
   // draft a team
   foreach ($players as $value) {
-    // break out if we have a complete team
-    if (count($closed_positons == 6) {
+    // break out...
+    if (count($closed_positons == 6)) { // ...if we have a complete team
       break;
     }
+    if ($current_team['total_salary'] == $current_limits['salary']) { // ...if we have hit the salary cap
+      break;
+    }
+
+    // does adding this player put us over the salary cap?
+    if (($current_team['total_salary'] + $value[SALARY]) > $current_limits['salary']) {
+      continue;
+    }
     
-  // draft a player if we have a slot for him
+    // do we have a position slot for him?
     if ($current_limits[$value[POSITION]]) { // e.g.: if we draw a QB, check against $limits[QB]
       $current_limits[$value[POSITION]]--;
       if ($current_limits[$value[POSITION]] == 0) {
@@ -84,23 +93,17 @@ for ($i = 0; $i < $iterations; $i++) {
         $closed_positions[] = FLEX;
       }
     } else {
-      // skip this card
       continue;
     }
     
     // add to our team
     $current_team['players'][] = $value;
-    $current_team['points'] += $value[POINTS];
-    $current_limits['salary'] -= $value[SALARY];
-    
-    // check against our salary cap
-    if ($current_limits['salary'] < 0) {
-      break;
-    }
+    $current_team['total_points'] += $value[POINTS];
+    $current_team['total_salary'] += $value[SALARY];
   }
   
   // is this team the best we have assembled?
-  if ($current_team['points'] > $best_team['points']) {
+  if ($current_team['total_points'] > $best_team['total_points']) {
     $best_team = $current_team;
   }
   
