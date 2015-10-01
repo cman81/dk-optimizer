@@ -4,8 +4,8 @@
  **/
 
 // define constants
-define('NAME', 0);
-define('POSITION', 1);
+define('POSITION', 0);
+define('NAME', 1);
 define('SALARY', 2);
 define('POINTS', 3);
 define('UUID', 4);
@@ -37,7 +37,7 @@ if (file('data.csv') !== FALSE) {
 $players = array_slice($players, 1); // remove header row
 
 // accept command-line arguments
-if (count($argv > 1)) {
+if (count($argv) > 1) {
   $args = array_slice($argv, 1);
   list($limits[QB], $limits[RB], $limits[WR], $limits[TE], $limits[FLEX], $limits[DEF], $limits['salary'], $iterations) = $args;
 } else {
@@ -62,11 +62,11 @@ for ($i = 0; $i < $iterations; $i++) {
 
   // shuffle player 'cards'
   foreach ($players as $key => $value) {
-    $players[UUID] = generate_uuid();
+    $players[$key][UUID] = generate_uuid();
   }
   usort(
     $players,
-    function player_sort($a, $b) {
+    function($a, $b) {
       if ($a[UUID] == $b[UUID]) return 0;
       return ($a[UUID] > $b[UUID]) ? 1 : -1;
     }
@@ -75,7 +75,7 @@ for ($i = 0; $i < $iterations; $i++) {
   // draft a team
   foreach ($players as $value) {
     // break out...
-    if (count($closed_positons == 6)) { // ...if we have a complete team
+    if (count($closed_positions) == 6) { // ...if we have a complete team
       break;
     }
     if ($current_team['total_salary'] == $current_limits['salary']) { // ...if we have hit the salary cap
