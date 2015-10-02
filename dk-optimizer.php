@@ -8,7 +8,6 @@ define('POSITION', 0);
 define('NAME', 1);
 define('SALARY', 2);
 define('POINTS', 3);
-define('UUID', 4);
 define('QB', 'QB');
 define('RB', 'RB');
 define('WR', 'WR');
@@ -63,21 +62,16 @@ while ($i < $threshold) {
     'total_salary' => 0,
   );
   $current_limits = $limits;
+  $current_players = array();
 
   // shuffle player 'cards'
-  foreach ($players as $key => $value) {
-    $players[$key][UUID] = generate_uuid();
-  }
-  usort(
-    $players,
-    function($a, $b) {
-      if ($a[UUID] == $b[UUID]) return 0;
-      return ($a[UUID] > $b[UUID]) ? 1 : -1;
-    }
-  );
-  
-  // draft a team
   foreach ($players as $value) {
+    $current_players[sha1(microtime(TRUE) . mt_rand(10000, 90000))] = $value;
+  }
+  ksort($current_players);
+
+  // draft a team
+  foreach ($current_players as $value) {
     // break out...
     if (count($closed_positions) == 6) { // ...if we have a complete team
       break;
@@ -115,10 +109,14 @@ while ($i < $threshold) {
   // is this team the best we have assembled?
   if ($current_team['total_points'] > $best_team['total_points']) {
     $best_team = $current_team;
-    $i = 0;
+    $i = round($i / 2);
     echo '+';
   } else {
     $i++;
+  }
+
+  if ($i % round($threshold / 10) == 0) {
+    echo $i / round($threshold / 10);
   }
 }
 $time_end = microtime_float();
@@ -151,19 +149,6 @@ echo "Execution time: " . $time . " seconds\n";
 $file = fopen('output.csv', 'a');
 fwrite($file, implode(',', $output) . "\n");
 fclose($file);
-
-/**
- * http://rogerstringer.com/2013/11/15/generate-uuids-php
- **/
-function generate_uuid() {
-    return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-        mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ),
-        mt_rand( 0, 0xffff ),
-        mt_rand( 0, 0x0fff ) | 0x4000,
-        mt_rand( 0, 0x3fff ) | 0x8000,
-        mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff )
-    );
-}
 
 function microtime_float() {
     list($usec, $sec) = explode(" ", microtime());
