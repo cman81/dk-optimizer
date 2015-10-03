@@ -28,27 +28,76 @@ $limits = array(
   'salary' => 50000,
 );
 $threshold = 200;
+$depth = 1;
 
 // load player data
 if (file('data.csv') !== FALSE) {
   $players = array_map('str_getcsv', file('data.csv'));
 } else {
-  // sample data
-  $players = array(
-    array('Player Name', 'Position', 'Salary', 'Projected Points'),
-    array('Julio Jones', 'WR', '9300', '12.9'),
-    array('Andre Johnson', 'WR', '9300', '12.9'),
-    array('Blargh', 'WR', '9300', '12.9'),
-    array('Next', 'WR', '9300', '12.9'),
-    array('Hello', 'WR', '9300', '12.9'),
-  );
+  exit('Invalid data.');
 }
 $players = array_slice($players, 1); // remove header row
 
 // accept command-line arguments
 if (count($argv) > 1) {
   $args = array_slice($argv, 1);
-  list($threshold) = $args;
+  list($threshold, $depth) = $args;
+}
+
+// remove all players with 0 projected points
+$trimmed_players = array();
+foreach ($players as $value) {
+  if ($value[POINTS] != 0) {
+    $trimmed_players[] = $value;
+  }
+}
+$players = $trimmed_players;
+
+// trim list of players according to depth
+if ($depth > 0) {
+  $trimmed_players = array();
+  $position_counts = array(
+    QB => 0,
+    RB => 0,
+    WR => 0,
+    TE => 0,
+    DEF => 0,
+  );
+
+  // sort player list by projected points (highest first)
+  usort(
+    $players,
+    function($a, $b) {
+      if ($a[POINTS] == $b[POINTS]) return 0;
+      return ($a[POINTS] > $b[POINTS]) ? -1 : 1;
+    }
+  );
+
+  // determine whether we skip this player
+  foreach ($players as $value) {
+    $skip = FALSE;
+    switch($value[POSITION]) {
+      case QB:
+      case TE:
+      case DEF:
+        if ($position_counts[$value[POSITION]] == $depth * 5) {
+          $skip = TRUE;
+        }
+        break;
+      case RB:
+      case WR:
+        if ($position_counts[$value[POSITION]] == $depth * 10) {
+          $skip = TRUE;
+        }
+        break;
+    }
+
+    if (!$skip) {
+      $position_counts[$value[POSITION]]++;
+      $trimmed_players[] = $value;
+    }
+  }
+  $players = $trimmed_players;
 }
 
 // run the engine
